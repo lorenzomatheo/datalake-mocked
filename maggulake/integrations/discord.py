@@ -7,11 +7,29 @@ ID_CANAL_DISCORD = "1484310403227062343"
 TAMANHO_MAXIMO_MENSAGEM = 2000
 
 
+def _get_env_or_secret(key: str, scope: str = "omni") -> str:
+    """Lê de os.environ (CI) ou dbutils.secrets (Databricks)."""
+    value = os.environ.get(key)
+    if value:
+        return value
+    try:
+        from pyspark.sql import SparkSession  # noqa: PLC0415
+        from pyspark.dbutils import DBUtils  # noqa: PLC0415
+
+        spark = SparkSession.getActiveSession()
+        if spark:
+            dbutils = DBUtils(spark)
+            return dbutils.secrets.get(scope=scope, key=key)
+    except Exception:
+        pass
+    raise ValueError(f"Variável '{key}' não encontrada em os.environ nem em dbutils.secrets(scope='{scope}')")
+
+
 def _get_omni_client() -> tuple[OmniClient, str]:
     """Retorna um OmniClient configurado e o instance_id do Discord."""
-    base_url = os.environ["OMNI_BASE_URL"]
-    api_key = os.environ["OMNI_API_KEY"]
-    instance_id = os.environ["OMNI_DISCORD_INSTANCE_ID"]
+    base_url = _get_env_or_secret("OMNI_BASE_URL")
+    api_key = _get_env_or_secret("OMNI_API_KEY")
+    instance_id = _get_env_or_secret("OMNI_DISCORD_INSTANCE_ID")
     client = OmniClient(base_url=base_url, api_key=api_key)
     return client, instance_id
 
