@@ -82,5 +82,8 @@ pydrive
 # Agno
 agno
 
+# Omni (messaging omnichannel — Discord, WhatsApp, Telegram)
+omni-sdk
+
 #Vertexai
 vertexai

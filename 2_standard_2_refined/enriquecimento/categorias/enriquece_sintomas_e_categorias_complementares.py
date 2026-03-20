@@ -206,7 +206,6 @@ if MAX_PRODUCTS and total_original > MAX_PRODUCTS:
     df_ps = df_ps.limit(MAX_PRODUCTS)
 
 produtos_pendentes = filtra_notifica_produtos_enriquecimento(
-    spark,
     original_df=produtos,
     df_to_enrich=df_ps,
     ignorar_filtros_de_execucao=IGNORAR_FILTROS,

@@ -468,7 +468,6 @@ df_produtos_pendentes = produtos_refined_df.join(
 # COMMAND ----------
 
 produtos_pendentes = filtra_notifica_produtos_enriquecimento(
-    spark,
     produtos_refined_df,
     df_produtos_pendentes,
     THRESHOLD_EXECUCAO,

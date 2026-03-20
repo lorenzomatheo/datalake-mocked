@@ -3,3 +3,7 @@
 
 # make github not count the .html files in the repo stats
 *.html linguist-vendored
+
+# enforce LF line endings for YAML files to prevent shell breakage in GitHub Actions
+*.yml text eol=lf
+*.yaml text eol=lf

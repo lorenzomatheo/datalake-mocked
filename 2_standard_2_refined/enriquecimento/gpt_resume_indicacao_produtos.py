@@ -198,7 +198,6 @@ print(f"Produtos pendentes de enriquecimento: {produtos_pendentes_qtd}")
 # COMMAND ----------
 
 produtos_pendentes: list[Row] = filtra_notifica_produtos_enriquecimento(
-    spark,
     original_df=produtos,
     df_to_enrich=produtos_pendentes,
     threshold=THRESHOLD_EXECUCAO,

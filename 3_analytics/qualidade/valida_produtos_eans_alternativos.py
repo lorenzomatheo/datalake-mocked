@@ -169,7 +169,7 @@ if erros:
     print("\n" + mensagem_erro)
 
     # Envia notificação ao Discord
-    enviar_mensagem_discord(spark, ID_CANAL_DISCORD, mensagem_erro)
+    enviar_mensagem_discord(ID_CANAL_DISCORD, mensagem_erro)
     print("✅ Notificação enviada ao Discord")
 
     # Falha o notebook com mensagem detalhada
