@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
-from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import DataFrame
 
 from maggulake.integrations.discord import ID_CANAL_DISCORD, enviar_mensagem_discord
 from maggulake.utils.time import agora_em_sao_paulo
@@ -52,13 +52,12 @@ def _diagnostico_a_refazer(
 
 
 def filtra_notifica_produtos_enriquecimento(
-    spark: SparkSession,
     original_df: DataFrame,
     df_to_enrich: DataFrame,
     threshold: float,
     days_back: int,
     script_name: str,
-    id_canal_databricks: int = ID_CANAL_DISCORD,
+    id_canal_databricks: int | str = ID_CANAL_DISCORD,
     ignorar_filtros_de_execucao: bool = False,
     enriched_df: DataFrame | None = None,
     required_fields: list[str] | None = None,
@@ -148,7 +147,7 @@ def filtra_notifica_produtos_enriquecimento(
         + diagnosticos
     )
 
-    enviar_mensagem_discord(spark, id_canal_databricks, aviso)
+    enviar_mensagem_discord(id_canal_databricks, aviso)
 
     if ignorar_filtros_de_execucao:
         print(

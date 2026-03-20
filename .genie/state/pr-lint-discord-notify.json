@@ -1,0 +1,14 @@
+{
+  "wish": "pr-lint-discord-notify",
+  "groups": {
+    "1": {
+      "status": "done",
+      "assignee": "engineer",
+      "dependsOn": [],
+      "startedAt": "2026-03-19T00:00:00.000Z",
+      "completedAt": "2026-03-20T01:56:48.502Z"
+    }
+  },
+  "createdAt": "2026-03-19T00:00:00.000Z",
+  "updatedAt": "2026-03-20T01:56:48.505Z"
+}

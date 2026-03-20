@@ -1,0 +1,15 @@
+{
+  "workerId": "new-project-team-lead",
+  "messages": [
+    {
+      "id": "msg-49823375-b762-4b7d-9610-20fff03c0fb0",
+      "from": "New Project",
+      "to": "new-project-team-lead",
+      "body": "Fix applied — CRLF line endings in .github/workflows/linters.yml converted to LF (150 CRLF sequences removed). Added *.yml/*.yaml eol=lf rules to .gitattributes to prevent recurrence. make format && make lint pass with exit 0.",
+      "createdAt": "2026-03-20T02:12:32.781Z",
+      "read": false,
+      "deliveredAt": "2026-03-20T02:12:32.798Z"
+    }
+  ],
+  "lastUpdated": "2026-03-20T02:12:32.800Z"
+}

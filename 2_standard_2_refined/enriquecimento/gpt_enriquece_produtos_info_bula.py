@@ -331,7 +331,6 @@ if DEBUG:
 # COMMAND ----------
 
 produtos_pendentes = filtra_notifica_produtos_enriquecimento(
-    spark,
     original_df=produtos,
     df_to_enrich=df_filtra_refazer,
     threshold=THRESHOLD_EXECUCAO,

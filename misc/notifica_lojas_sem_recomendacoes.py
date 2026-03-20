@@ -141,6 +141,6 @@ if lojas_por_erp_conta:
 
     # Envio para o Discord
     print(mensagem)
-    enviar_mensagem_discord(spark, ID_CANAL_DISCORD, mensagem)
+    enviar_mensagem_discord(ID_CANAL_DISCORD, mensagem)
 else:
     print("Nenhuma loja sem recomendações encontrada.")

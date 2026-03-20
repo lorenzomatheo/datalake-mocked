@@ -122,7 +122,12 @@ jobs:
     needs: [ruff, pylint, markdown-format, markdown-lint, terraform-validate, terraform-fmt-check]
     if: ${{ failure() }}
     steps:
-      - name: Enviar notificacao de falha no Discord
+      - name: Enviar notificacao de falha no Discord via Omni
+        env:
+          OMNI_BASE_URL: ${{ secrets.OMNI_BASE_URL }}
+          OMNI_API_KEY: ${{ secrets.OMNI_API_KEY }}
+          OMNI_DISCORD_INSTANCE_ID: ${{ secrets.OMNI_DISCORD_INSTANCE_ID }}
+          OMNI_DISCORD_CHANNEL_ID: ${{ secrets.OMNI_DISCORD_CHANNEL_ID }}
         run: |
           FAILED_JOBS=""
           if [ "${{ needs.ruff.result }}" = "failure" ]; then
@@ -145,6 +150,8 @@ jobs:
           fi
           FAILED_JOBS="${FAILED_JOBS%, }"
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          curl -s -X POST "${{ secrets.OMNI_DISCORD_WEBHOOK_URL }}" \
+          MESSAGE="❌ **Falha no PR: ${{ github.event.pull_request.title }}**\n👤 Autor: ${{ github.actor }}\n🔴 Jobs com falha: ${FAILED_JOBS}\n🔗 Ver detalhes: ${RUN_URL}"
+          curl -s -X POST "${OMNI_BASE_URL}/api/v2/messages" \
             -H "Content-Type: application/json" \
-            -d "{\"content\": \"❌ **Falha no PR: ${{ github.event.pull_request.title }}**\n👤 Autor: ${{ github.actor }}\n🔴 Jobs com falha: ${FAILED_JOBS}\n🔗 Ver detalhes: ${RUN_URL}\"}"
+            -H "x-api-key: ${OMNI_API_KEY}" \
+            -d "{\"instanceId\": \"${OMNI_DISCORD_INSTANCE_ID}\", \"to\": \"${OMNI_DISCORD_CHANNEL_ID}\", \"text\": \"${MESSAGE}\"}"

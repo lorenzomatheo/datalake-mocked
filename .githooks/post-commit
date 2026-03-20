@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# post-commit hook — pergunta se quer rodar make format e make lint antes do push
+# Compatível com WSL: usa /dev/tty para leitura interativa do terminal real
+
+set -euo pipefail
+
+# Garante que conseguimos ler do terminal mesmo em contexto de hook git
+exec </dev/tty
+
+ask_run() {
+    local cmd="$1"
+    local prompt="$2"
+
+    printf "\n%s [s/N] " "$prompt"
+    read -r resposta
+
+    case "${resposta}" in
+        [ssSyY])
+            printf "\n>>> Rodando: %s\n\n" "$cmd"
+            eval "$cmd"
+            ;;
+        *)
+            printf "Pulando %s.\n" "$cmd"
+            ;;
+    esac
+}
+
+ask_run "make format" "Quer rodar 'make format' antes de dar push?"
+ask_run "make lint"   "Quer rodar 'make lint' antes de dar push?"
+
+# Sempre sai com 0 — hook não bloqueante
+exit 0
