@@ -118,7 +118,7 @@ jobs:
       run: pymarkdownlnt --config .pymarkdown.json scan .
 
   notify-on-failure:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, omni]
     needs: [ruff, pylint, markdown-format, markdown-lint, terraform-validate, terraform-fmt-check]
     if: ${{ failure() }}
     steps:
@@ -151,7 +151,8 @@ jobs:
           FAILED_JOBS="${FAILED_JOBS%, }"
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           MESSAGE="❌ **Falha no PR: ${{ github.event.pull_request.title }}**\n👤 Autor: ${{ github.actor }}\n🔴 Jobs com falha: ${FAILED_JOBS}\n🔗 Ver detalhes: ${RUN_URL}"
-          curl -s -X POST "${OMNI_BASE_URL}/api/v2/messages" \
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "${OMNI_BASE_URL}/api/v2/messages" \
             -H "Content-Type: application/json" \
             -H "x-api-key: ${OMNI_API_KEY}" \
-            -d "{\"instanceId\": \"${OMNI_DISCORD_INSTANCE_ID}\", \"to\": \"${OMNI_DISCORD_CHANNEL_ID}\", \"text\": \"${MESSAGE}\"}"
+            -d "{\"instanceId\": \"${OMNI_DISCORD_INSTANCE_ID}\", \"to\": \"${OMNI_DISCORD_CHANNEL_ID}\", \"text\": \"${MESSAGE}\"}")
+          echo "Response: ${RESPONSE}"
