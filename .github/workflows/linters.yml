@@ -116,3 +116,35 @@ jobs:
         pip install pymarkdownlnt
     - name: Run pymarkdownlnt
       run: pymarkdownlnt --config .pymarkdown.json scan .
+
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    needs: [ruff, pylint, markdown-format, markdown-lint, terraform-validate, terraform-fmt-check]
+    if: ${{ failure() }}
+    steps:
+      - name: Enviar notificacao de falha no Discord
+        run: |
+          FAILED_JOBS=""
+          if [ "${{ needs.ruff.result }}" = "failure" ]; then
+            FAILED_JOBS="${FAILED_JOBS}ruff, "
+          fi
+          if [ "${{ needs.pylint.result }}" = "failure" ]; then
+            FAILED_JOBS="${FAILED_JOBS}pylint, "
+          fi
+          if [ "${{ needs.markdown-format.result }}" = "failure" ]; then
+            FAILED_JOBS="${FAILED_JOBS}markdown-format, "
+          fi
+          if [ "${{ needs.markdown-lint.result }}" = "failure" ]; then
+            FAILED_JOBS="${FAILED_JOBS}markdown-lint, "
+          fi
+          if [ "${{ needs.terraform-validate.result }}" = "failure" ]; then
+            FAILED_JOBS="${FAILED_JOBS}terraform-validate, "
+          fi
+          if [ "${{ needs.terraform-fmt-check.result }}" = "failure" ]; then
+            FAILED_JOBS="${FAILED_JOBS}terraform-fmt-check, "
+          fi
+          FAILED_JOBS="${FAILED_JOBS%, }"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -s -X POST "${{ secrets.OMNI_DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"❌ **Falha no PR: ${{ github.event.pull_request.title }}**\n👤 Autor: ${{ github.actor }}\n🔴 Jobs com falha: ${FAILED_JOBS}\n🔗 Ver detalhes: ${RUN_URL}\"}"
