@@ -73,9 +73,13 @@ else
 endif
 
 format-terraform:
+ifeq ($(PLATFORM),Linux)
+	@echo "\033[1;34mRunning terraform fmt to format Terraform files...\033[0m"
+	@if command -v terraform > /dev/null 2>&1; then terraform fmt -recursive terraform; echo "\033[1;32mTerraform formatting completed.\033[0m"; else echo "\033[1;33mterraform not found, skipping format-terraform.\033[0m"; fi
+else
 	@echo Running terraform fmt to format Terraform files...
-	@terraform fmt -recursive terraform
-	@echo Terraform formatting completed.
+	@where terraform >nul 2>&1 && terraform fmt -recursive terraform && echo Terraform formatting completed. || echo terraform not found, skipping format-terraform.
+endif
 
 format-markdown:
 ifeq ($(PLATFORM),Linux)
