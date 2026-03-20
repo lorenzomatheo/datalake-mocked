@@ -18,7 +18,7 @@ make install
 
 Após cada `git commit`, o hook `.git/hooks/post-commit` pergunta interativamente se você quer rodar `make format` e `make lint` antes de dar push:
 
-```
+```text
 Quer rodar 'make format' antes de dar push? [s/N]
 Quer rodar 'make lint' antes de dar push? [s/N]
 ```
@@ -71,7 +71,7 @@ Se **qualquer job de lint falhar**, o job `notify-on-failure` é executado em um
 
 O fluxo completo:
 
-```
+```text
 PR aberto/atualizado
   └─► GitHub Actions roda linters (ubuntu-latest)
         └─► Algum linter falha
@@ -131,7 +131,7 @@ tar xzf actions-runner-linux-x64-2.322.0.tar.gz
 ```bash
 omni instances create --name "alerts-discord" --channel discord
 omni instances connect <instance-id> --token "<DISCORD_BOT_TOKEN>"
-``` 
+```
 
 ## Genie — Orquestrador de tarefas
 
@@ -139,7 +139,7 @@ O diretório `.genie/` é o orquestrador de tarefas do projeto. Ele define espec
 
 ### Estrutura
 
-```
+```text
 .genie/
 ├── wishes/          # Especificações de tarefas (WISH.md)
 │   ├── post-commit-format-lint-hook/
