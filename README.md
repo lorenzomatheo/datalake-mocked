@@ -4,6 +4,16 @@ Data lakehouse Databricks com arquitetura medallion para o ecossistema farmacêu
 
 ## Setup
 
+### Python mínimo requerido: 3.11+
+
+Este repositório usa `typing.Self` (disponível a partir de Python 3.11). Se `python` aponta para 3.10 ou anterior, especifique a versão ao criar o virtualenv:
+
+```bash
+python3.12 -m venv .venv  # ou 3.11
+```
+
+### Instalação
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate   # Linux/WSL
@@ -14,9 +24,9 @@ make install
 
 ## Qualidade de código
 
-### Hook post-commit (local)
+### Local — make format e make lint
 
-Após cada `git commit`, o hook `.git/hooks/post-commit` pergunta interativamente se você quer rodar `make format` e `make lint` antes de dar push:
+Após cada `git commit`, o hook post-commit pergunta interativamente se você quer rodar `make format` e `make lint` antes de dar push:
 
 ```text
 Quer rodar 'make format' antes de dar push? [s/N]
@@ -24,8 +34,6 @@ Quer rodar 'make lint' antes de dar push? [s/N]
 ```
 
 O hook é **não-bloqueante** — se você recusar, o commit já foi feito normalmente.
-
-#### O que cada comando faz
 
 **`make format`** corrige a formatação automaticamente:
 
@@ -39,15 +47,6 @@ O hook é **não-bloqueante** — se você recusar, o commit já foi feito norma
 - `ruff check` — linting rápido (estilo, imports, erros comuns)
 - `pylint --rcfile=.pylintrc .` — análise estática mais completa
 - `pymarkdownlnt --config .pymarkdown.json scan .` — lint de Markdown
-
-#### Instalação do hook
-
-Copie o arquivo para `.git/hooks/`:
-
-```bash
-cp hooks/post-commit .git/hooks/post-commit
-chmod +x .git/hooks/post-commit
-```
 
 ### CI — GitHub Actions (remoto)
 
@@ -69,8 +68,6 @@ O workflow é acionado quando há mudanças em arquivos `.py`, `.ipynb`, `.md`, 
 
 Se **qualquer job de lint falhar**, o job `notify-on-failure` é executado em um **self-hosted runner** (label `omni`) que tem acesso à rede privada onde o servidor Omni está rodando.
 
-O fluxo completo:
-
 ```text
 PR aberto/atualizado
   └─► GitHub Actions roda linters (ubuntu-latest)
@@ -87,9 +84,29 @@ A mensagem no Discord contém:
 - Quais jobs falharam
 - Link para os detalhes do run
 
-#### Configuração necessária
+## Configuração — Discord via Omni
 
-**GitHub Secrets** (Settings > Secrets and variables > Actions):
+### 1. Instância Omni
+
+Na máquina que hospeda o Omni (rede privada):
+
+```bash
+omni instances create --name "alerts-discord" --channel discord
+omni instances connect <instance-id> --token "<DISCORD_BOT_TOKEN>"
+```
+
+### 2. Bot Discord
+
+O bot precisa estar no servidor e ter acesso ao canal:
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) > selecionar o bot
+1. OAuth2 > marcar scope `bot` > marcar permissões `Send Messages` e `View Channels`
+1. Abrir a URL gerada e autorizar no servidor
+1. Se o canal for privado: Editar canal > Permissões > adicionar o bot
+
+### 3. GitHub Secrets
+
+Settings > Secrets and variables > Actions:
 
 | Secret                     | Descrição                 | Como obter                                                        |
 | -------------------------- | ------------------------- | ----------------------------------------------------------------- |
@@ -105,7 +122,9 @@ gh secret set OMNI_DISCORD_INSTANCE_ID --body "<uuid>"
 gh secret set OMNI_DISCORD_CHANNEL_ID --body "<id-do-canal>"
 ```
 
-**Self-hosted runner** (máquina na rede privada com acesso ao Omni):
+### 4. Self-hosted runner
+
+O runner precisa estar numa máquina na rede privada com acesso ao Omni. O `~` no WSL aponta para `/home/<usuario>`, não para `/mnt/c/Users/...` — use `~` para evitar problemas com espaços no path.
 
 ```bash
 # Gerar token de registro
@@ -119,19 +138,7 @@ tar xzf actions-runner-linux-x64-2.322.0.tar.gz
 ./run.sh
 ```
 
-**Bot Discord** (precisa estar no servidor e ter acesso ao canal):
-
-1. [Discord Developer Portal](https://discord.com/developers/applications) > selecionar o bot
-1. OAuth2 > marcar scope `bot` > marcar permissões `Send Messages` e `View Channels`
-1. Abrir a URL gerada e autorizar no servidor
-1. Se o canal for privado: Editar canal > Permissões > adicionar o bot
-
-**Instância Omni**:
-
-```bash
-omni instances create --name "alerts-discord" --channel discord
-omni instances connect <instance-id> --token "<DISCORD_BOT_TOKEN>"
-```
+Para obter detalhes adicionais sobre como configurar, executar ou desligar o runner, por favor verifique: https://docs.github.com/pt/actions/how-tos/manage-runners/self-hosted-runners
 
 ## Genie — Orquestrador de tarefas
 
