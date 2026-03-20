@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maggulake"
+version = "0.1.0"
+description = "Maggu datalake"
+authors = [
+    { name="Maggu", email="maggu@maggu.ai" }
+]
+
+[tool.setuptools]
+packages = ["maggulake"]
+
+
+[tool.poetry.dependency]
+python = "^3.11"
+pylint = "^3.3"
+
+
+[tool.pyright]
+reportUndefinedVariable = false
+typeCheckingMode = "off"
+
+
+[tool.ruff]
+required-version = "==0.15.6"
+target-version = "py312"
+line-length = 88
+indent-width = 4
+lint.ignore = [
+    "E402",  # Module level import not at top of file
+    "E712",  # Avoid equality comparisons to `True`. Para nós é interessante manter isso aqui comentado pois ajuda na hora de fazermos F.col("col_name") == False. Essa regra é uma recomendação do PEP8 https://peps.python.org/pep-0008/#programming-recommendations
+    "F704",  # `await` statement outside of a function (TODO: nao sei, sera que deveríamos corrigir isso?)
+]
+builtins = [
+    "dbutils",
+    "display",
+    "displayHTML",
+    "get_ipython",
+    "spark"
+]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 88  # E501 reports lines that exceed the length of 88.
+
+
+[tool.ruff.format]
+quote-style = "preserve"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false
+docstring-code-line-length = "dynamic"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning:asttokens.*",
+]
+
+[tool.mdformat]
+wrap = 88
+number = true

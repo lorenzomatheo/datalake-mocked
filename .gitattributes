@@ -1,0 +1,5 @@
+# make all .ipynb be understood as python files
+*.ipynb linguist-language=python
+
+# make github not count the .html files in the repo stats
+*.html linguist-vendored

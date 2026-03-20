@@ -1,0 +1,26 @@
+name: Datalake - Verificação de branch
+
+on:
+  pull_request:
+      types: [opened, reopened, ready_for_review]
+
+jobs:
+    check-is-rebased:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Verificar
+              run: |
+                  if git merge-base --is-ancestor origin/main @
+                  then
+                    echo "Sua branch está atualizada, parabéns!"
+                    exit 0
+                  else
+                    echo "Sua branch não está atualizada. Por favor, execute 'git pull --rebase -i origin main' para atualizar sua branch e evitar conflitos."
+                    exit 1
+                  fi

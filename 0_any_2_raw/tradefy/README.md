@@ -1,0 +1,1 @@
+Obs.: O tradefy nos fornece notas fiscais. Nao se trata de produtos, mas sim de notas fiscais. O que a gente tem que fazer é pegar os produtos dessas notas fiscais de entrada (i.e. aquilo que entrou na farmacia - aka _Sell-In_) e montar um dataset de produtos\*notas_fiscais

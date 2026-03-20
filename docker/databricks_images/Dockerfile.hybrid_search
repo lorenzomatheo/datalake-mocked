@@ -1,0 +1,8 @@
+FROM databricksruntime/gpu-pytorch:cuda11.8
+
+RUN /databricks/python3/bin/pip install boto3 pymilvus[model] datasets peft FlagEmbedding huggingface_hub[cli]
+
+RUN /databricks/python3/bin/huggingface-cli download 'BAAI/bge-m3'
+
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8

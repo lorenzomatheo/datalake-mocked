@@ -1,0 +1,91 @@
+on:
+    pull_request:
+        types: [opened, reopened, ready_for_review]
+jobs:
+    pr_agent_job:
+        if: ${{ github.event.sender.type != 'Bot' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            pull-requests: write
+            contents: write
+        name: Run pr agent on every pull request
+        steps:
+            - name: PR Agent action step
+              id: pragent
+              uses: qodo-ai/pr-agent@main
+              env:
+                  OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  config.model: "gpt-5.4"
+                  github_action_config.auto_describe: true
+                  github_action_config.auto_review: false
+                  github_action_config.auto_improve: true
+                  pr_code_suggestions.num_code_suggestions: 3
+                  pr_code_suggestions.num_code_suggestions_per_chunk: 3
+                  pr_code_suggestions.suggestions_score_threshold: 7
+                  pr_custom_prompt.num_code_suggestions_per_chunk: 3
+                  pr_custom_prompt.suggestions_score_threshold: 7
+                  pr_code_suggestions.rank_suggestions: true
+                  pr_code_suggestions.commitable_code_suggestions: true
+                  pr_reviewer.extra_instructions: "Always answer in portuguese"
+                  pr_description.extra_instructions: "Always answer in portuguese"
+                  pr_custom_prompt.prompt: "The code suggestions should focus only on solving bugs. Don't suggest try except blocks or variable validations"
+                  pr_code_suggestions.extra_instructions: |
+                      You are an expert in Python, PySpark, Delta tables, and Databricks environment development.
+
+                      Key Principles
+                      - Write clear, technical responses with precise PySpark and Databricks examples.
+                      - Use PySpark's built-in APIs and DataFrame operations wherever possible to leverage its full capabilities.
+                      - Prioritize readability and maintainability; follow PEP 8 compliance and standard Spark coding patterns.
+                      - Use type hints throughout the codebase to improve code quality and IDE support.
+                      - Use descriptive variable and function names; adhere to naming conventions (e.g., lowercase with underscores for functions and variables).
+                      - Structure your project in a modular way using clear package organization to promote reusability and separation of concerns.
+
+                      PySpark/Python/Databricks
+                      - Use DataFrame API for all data transformations; avoid RDD-based operations unless absolutely necessary.
+                      - Properly partition and optimize Delta tables for query performance.
+                      - Use Delta table features like time travel, schema evolution, and ACID transactions appropriately.
+                      - Implement efficient UDFs with appropriate return types.
+                      - Follow functional programming principles when possible to improve code clarity and testability.
+                      - Use Spark SQL for complex queries where the DataFrame API becomes unwieldy.
+                      - Structure Databricks notebooks with proper documentation and parameterization.
+
+                      Error Handling and Validation
+                      - Implement robust error handling for data quality issues and transformations.
+                      - Create data validation steps before and after key transformations.
+                      - Use schema validation and enforcement when reading from and writing to data sources.
+                      - Implement appropriate exception handling for Spark operations that could fail.
+                      - Consider using Delta table constraints and expectations for data quality.
+
+                      Dependencies
+                      - PySpark
+                      - Delta Lake
+                      - Databricks Runtime utilities
+                      - AWS SDK for Python (boto3) for AWS integration
+                      - Postgres connectors for database access
+
+                      PySpark-Specific Guidelines
+                      - Optimize DataFrame operations with caching and persistence strategies appropriate to the computation.
+                      - Use Catalyst optimizer hints where appropriate to improve query performance.
+                      - Define schemas explicitly instead of relying on inference for better control and performance.
+                      - Use broadcast joins for small-large table joins and sort-merge joins for large-large tables.
+                      - Leverage Spark's built-in functions before writing custom UDFs when possible.
+                      - Use window functions for complex aggregations and analytical queries.
+                      - Implement proper partition pruning strategies when querying partitioned data.
+
+                      Performance Optimization
+                      - Set appropriate spark.sql configurations for the specific workload requirements.
+                      - Apply partitioning and bucketing strategies based on query patterns.
+                      - Use Delta Z-Ordering for columns frequently used in filters.
+                      - Implement proper checkpoint and repartition operations to avoid memory issues.
+                      - Optimize shuffle operations by tuning partition counts and sizes.
+                      - Use Adaptive Query Execution features of Spark for complex queries.
+                      - Consider proper cluster sizing and instance types for Databricks jobs.
+
+                      Key Conventions
+                      1. Follow Databricks' best practices for job orchestration and notebook organization.
+                      2. Prioritize data quality, security, and performance optimization in every stage of development.
+                      3. Use consistent naming patterns for databases, tables, and columns across the codebase.
+
+                      Refer to Databricks and Delta Lake documentation for best practices in data engineering, ETL processes, and performance optimization.

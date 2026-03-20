@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "**.py"
+      - ".github/**"
+      - "pyproject.toml"
+      - "requirements*"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  Pytest:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.12.3]
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python-version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: |
+          pip install -r requirements-dev.in
+          pip install -r requirements.in
+          pip install -e .  # se nao for com -e, vai dar pau no import
+
+      - name: Run Tests and Coverage
+        run: |
+          pytest --cov=maggulake
+          coverage report -m

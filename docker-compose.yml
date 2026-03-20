@@ -1,0 +1,10 @@
+services:
+  liquibase:
+    build: docker/liquibase
+    volumes:
+      - ./liquibase:/app
+    environment:
+      - DATABRICKS_SERVER_HOSTNAME=dbc-25297b38-ec1c.cloud.databricks.com:443
+      - CHANGELOG_FILE=root_changelog.yml
+    env_file:
+      - .env.liquibase

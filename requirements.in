@@ -1,0 +1,86 @@
+# General purpose
+requests
+slugify
+html2text
+jinja2
+xlrd
+bs4
+pydantic
+pycountry
+
+# Text processing
+markitdown[pdf]
+rapidfuzz
+python-slugify
+tiktoken
+ftfy
+unidecode
+
+# Dataframes
+pandas
+pyspark
+openpyxl
+pydeequ
+xlrd
+
+# Plots
+seaborn
+matplotlib
+plotly
+
+# Postgres
+psycopg2
+
+# s3
+boto3
+s3fs
+fsspec
+
+# Databricks
+delta-spark
+databricks-sdk
+databricks-vectorsearch
+databricks-vectorsearch
+databricks-connect
+mlflow[databricks]
+
+# openai
+openai
+
+# LiteLLM (camada de abstração unificada para LLMs)
+litellm
+
+# Milvus
+pymilvus
+
+# Langchain
+langchain_openai
+langchain-milvus
+langchain_google_genai
+langchain-core
+langchain-community
+langchain
+langchain-community
+langchain-core
+langchainhub
+langchain_milvus
+langchain_google_vertexai
+
+# Web Search
+duckduckgo-search
+tavily-python
+
+# Google sheets e Google Drive
+gspread
+gspread-dataframe
+google
+google-genai
+pydrive2
+oauth2client
+pydrive
+
+# Agno
+agno
+
+#Vertexai
+vertexai

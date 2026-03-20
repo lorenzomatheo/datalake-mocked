@@ -1,0 +1,18 @@
+# linting
+pylint
+ruff
+# databricks-labs-pylint # TODO: nao estamos usando isso no momento, mas poderia...
+
+# markdown linting and formatting
+mdformat
+mdformat-gfm
+mdformat-tables
+pymarkdownlnt
+
+# tests
+pytest
+coverage
+pytest-cov
+pytest-mock
+pytest-xdist
+pytest-asyncio

@@ -1,0 +1,1783 @@
+{
+  "datasets": [
+    {
+      "name": "f8f82260",
+      "displayName": "regua_atendente_mensagens_enviadas",
+      "queryLines": [
+        "SELECT * FROM production.raw.regua_atendente_mensagens_enviadas\n",
+        "WHERE\n",
+        "    eh_somente_teste = false\n",
+        "\n",
+        "-- TODO: adicionar nome_rede e talvez nome_loja\n",
+        "-- TODO: adicioanr o codigo_externo do atendnete tbm, just in case, apesar de o mais importante aqui ser o id_atendente\n"
+      ]
+    },
+    {
+      "name": "76325264",
+      "displayName": "regua_atendente_mensagens_enviadas_erros",
+      "queryLines": [
+        "SELECT * FROM production.raw.regua_atendente_mensagens_enviadas_erros\n",
+        "WHERE\n",
+        "    eh_somente_teste = false\n"
+      ]
+    },
+    {
+      "name": "20c1ca40",
+      "displayName": "error_rate_trend",
+      "queryLines": [
+        "WITH daily_messages AS (\n",
+        "    SELECT \n",
+        "        DATE_TRUNC('DAY', data_hora_envio) AS data,\n",
+        "        COUNT(*) AS total_mensagens\n",
+        "    FROM regua_atendente_mensagens_enviadas\n",
+        "    WHERE eh_somente_teste = false\n",
+        "    GROUP BY DATE_TRUNC('DAY', data_hora_envio)\n",
+        "),\n",
+        "daily_errors AS (\n",
+        "    SELECT \n",
+        "        DATE_TRUNC('DAY', data_hora_erro) AS data,\n",
+        "        COUNT(*) AS total_erros\n",
+        "    FROM regua_atendente_mensagens_enviadas_erros\n",
+        "    WHERE eh_somente_teste = false\n",
+        "    GROUP BY DATE_TRUNC('DAY', data_hora_erro)\n",
+        ")\n",
+        "SELECT \n",
+        "    COALESCE(m.data, e.data) AS data,\n",
+        "    COALESCE(m.total_mensagens, 0) AS total_mensagens,\n",
+        "    COALESCE(e.total_erros, 0) AS total_erros,\n",
+        "    CASE \n",
+        "        WHEN COALESCE(m.total_mensagens, 0) > 0 \n",
+        "        THEN (COALESCE(e.total_erros, 0) * 100.0) / m.total_mensagens\n",
+        "        ELSE 0\n",
+        "    END AS taxa_erro_percentual\n",
+        "FROM daily_messages m\n",
+        "FULL OUTER JOIN daily_errors e ON m.data = e.data\n",
+        "ORDER BY data"
+      ],
+      "catalog": "production",
+      "schema": "raw"
+    },
+    {
+      "name": "0a9dba2f",
+      "displayName": "hyperflow_regua_alcance",
+      "queryLines": [
+        "SELECT * FROM production.analytics.hyperflow_regua_alcance"
+      ]
+    },
+    {
+      "name": "e93b0f35",
+      "displayName": "hyperflow_regua_opt_out",
+      "queryLines": [
+        "SELECT * FROM production.analytics.hyperflow_regua_opt_out"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "1987cc4a",
+      "displayName": "mensagens",
+      "layout": [
+        {
+          "widget": {
+            "name": "e2dd6885",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "daily(data_hora_envio)",
+                      "expression": "DATE_TRUNC(\"DAY\", `data_hora_envio`)"
+                    },
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Quantidade de mensagens enviadas por dia",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(data_hora_envio)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "data_hora_envio",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "count(*)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Count of Records",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 8,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "17736795",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    },
+                    {
+                      "name": "tipo_mensagem",
+                      "expression": "`tipo_mensagem`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count(*)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Count of Records"
+                },
+                "y": {
+                  "fieldName": "tipo_mensagem",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "tipo_mensagem"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "Quantidade de mensagens por tipo de mensagem"
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 0,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "7bb96ee5",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Total de Mensagens Enviadas",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(*)",
+                  "displayName": "Total de Mensagens"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 6,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "d073b6e6",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Data da última mensagem vs quantidade atendentes",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 7,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "05046051",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Redes que mais tiveram mensagens recebidas",
+                "showTitle": true
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 7,
+            "y": 12,
+            "width": 5,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "quantidade-de",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "countdistinct(username_atendente)",
+                      "expression": "COUNT(DISTINCT `username_atendente`)"
+                    },
+                    {
+                      "name": "tipo_mensagem",
+                      "expression": "`tipo_mensagem`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Quantidade de pessoas que receberam cada tipo mensagem"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "countdistinct(username_atendente)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "tipo_mensagem",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 8,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "data-ultimo-envio",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "max(data_hora_envio)",
+                      "expression": "MAX(`data_hora_envio`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Data do ultimo envio"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "max(data_hora_envio)",
+                  "format": {
+                    "type": "date-time",
+                    "date": "locale-short-month",
+                    "time": "locale-hour-minute-second",
+                    "leadingZeros": true
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 8,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "95b913b1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "min(data_hora_envio)",
+                      "expression": "MIN(`data_hora_envio`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Data do primeiro envio"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "min(data_hora_envio)",
+                  "format": {
+                    "type": "date-time",
+                    "date": "locale-short-month",
+                    "time": "locale-hour-minute-second",
+                    "leadingZeros": true
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 10,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "792de2ca",
+            "queries": [
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee21918a6f38128d6c638c6_tipo_mensagem",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "tipo_mensagem",
+                      "expression": "`tipo_mensagem`"
+                    },
+                    {
+                      "name": "tipo_mensagem_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "tipo_mensagem",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee21918a6f38128d6c638c6_tipo_mensagem"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 4,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "a67a426a",
+            "queries": [
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee21918a6f38128d6c638c6_subtipo_mensagem",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "subtipo_mensagem",
+                      "expression": "`subtipo_mensagem`"
+                    },
+                    {
+                      "name": "subtipo_mensagem_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "subtipo_mensagem",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee21918a6f38128d6c638c6_subtipo_mensagem"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 4,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "27e7c5d0",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "identificador-atendente",
+            "queries": [
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee21918a6f38128d6c638c6_username_atendente",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "username_atendente",
+                      "expression": "`username_atendente`"
+                    },
+                    {
+                      "name": "username_atendente_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219839345c5ec5953fa78_username_atendente",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "username_atendente",
+                      "expression": "`username_atendente`"
+                    },
+                    {
+                      "name": "username_atendente_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219ad9f6518594af599d2_username",
+                "query": {
+                  "datasetName": "e93b0f35",
+                  "fields": [
+                    {
+                      "name": "username",
+                      "expression": "`username`"
+                    },
+                    {
+                      "name": "username_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Identificador atendente"
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "username_atendente",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee21918a6f38128d6c638c6_username_atendente"
+                  },
+                  {
+                    "fieldName": "username_atendente",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219839345c5ec5953fa78_username_atendente"
+                  },
+                  {
+                    "fieldName": "username",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219ad9f6518594af599d2_username"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "data-hora",
+            "queries": [
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219839345c5ec5953fa78_monthly(data_hora_erro)",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "monthly(data_hora_erro)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `data_hora_erro`)"
+                    },
+                    {
+                      "name": "monthly(data_hora_erro)_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee21918a6f38128d6c638c6_monthly(data_hora_envio)",
+                "query": {
+                  "datasetName": "f8f82260",
+                  "fields": [
+                    {
+                      "name": "monthly(data_hora_envio)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `data_hora_envio`)"
+                    },
+                    {
+                      "name": "monthly(data_hora_envio)_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee2199689dd6e7e3409a4bb_monthly(data)",
+                "query": {
+                  "datasetName": "20c1ca40",
+                  "fields": [
+                    {
+                      "name": "monthly(data)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `data`)"
+                    },
+                    {
+                      "name": "monthly(data)_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219a6859db43f3a23f154_monthly(atualizado_em)",
+                "query": {
+                  "datasetName": "0a9dba2f",
+                  "fields": [
+                    {
+                      "name": "monthly(atualizado_em)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `atualizado_em`)"
+                    },
+                    {
+                      "name": "monthly(atualizado_em)_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219ad9f6518594af599d2_monthly(atualizado_em)",
+                "query": {
+                  "datasetName": "e93b0f35",
+                  "fields": [
+                    {
+                      "name": "monthly(atualizado_em)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `atualizado_em`)"
+                    },
+                    {
+                      "name": "monthly(atualizado_em)_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Ano-Mês"
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "monthly(data_hora_erro)",
+                    "displayName": "MONTHLY(data_hora_erro)",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219839345c5ec5953fa78_monthly(data_hora_erro)"
+                  },
+                  {
+                    "fieldName": "monthly(data_hora_envio)",
+                    "displayName": "MONTHLY(data_hora_envio)",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee21918a6f38128d6c638c6_monthly(data_hora_envio)"
+                  },
+                  {
+                    "fieldName": "monthly(data)",
+                    "displayName": "MONTHLY(data)",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee2199689dd6e7e3409a4bb_monthly(data)"
+                  },
+                  {
+                    "fieldName": "monthly(atualizado_em)",
+                    "displayName": "MONTHLY(atualizado_em)",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219a6859db43f3a23f154_monthly(atualizado_em)"
+                  },
+                  {
+                    "fieldName": "monthly(atualizado_em)",
+                    "displayName": "MONTHLY(atualizado_em)",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219ad9f6518594af599d2_monthly(atualizado_em)"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 2,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "7b61aade",
+      "displayName": "erros",
+      "layout": [
+        {
+          "widget": {
+            "name": "5c051d65",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "daily(data_hora_erro)",
+                      "expression": "DATE_TRUNC(\"DAY\", `data_hora_erro`)"
+                    },
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Quantidade de erros por dia",
+                "showDescription": true,
+                "description": "Quando um erro acontece, significa que não conseguimos enviar a mensagem!"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(data_hora_erro)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "count(*)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 8,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "525d790d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    },
+                    {
+                      "name": "tipo_erro",
+                      "expression": "`tipo_erro`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "Quantidade de erros por tipo de Erro"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count(*)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Count of Records",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "tipo_erro",
+                  "axis": {
+                    "hideTitle": true,
+                    "hideLabels": false
+                  },
+                  "displayName": "tipo_mensagem",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 0,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "fd2e5c3b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "20c1ca40",
+                  "fields": [
+                    {
+                      "name": "daily(data)",
+                      "expression": "DATE_TRUNC(\"DAY\", `data`)"
+                    },
+                    {
+                      "name": "taxa_erro_percentual",
+                      "expression": "`taxa_erro_percentual`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Taxa de Erro ao Longo do Tempo",
+                "showTitle": true
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(data)",
+                  "displayName": "Data",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "taxa_erro_percentual",
+                  "format": {
+                    "type": "number-plain",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 2
+                    },
+                    "abbreviation": "none"
+                  },
+                  "displayName": "Taxa de Erro (%)",
+                  "scale": {
+                    "type": "quantitative",
+                    "domain": {
+                      "max": 100,
+                      "min": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 8,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b198e832",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "username_atendente",
+                      "expression": "`username_atendente`"
+                    },
+                    {
+                      "name": "numero_destinatario",
+                      "expression": "`numero_destinatario`"
+                    },
+                    {
+                      "name": "data_hora_erro",
+                      "expression": "`data_hora_erro`"
+                    },
+                    {
+                      "name": "tipo_erro",
+                      "expression": "`tipo_erro`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Registro de erros ao enviar mensagens"
+              },
+              "rowsPerPage": 25,
+              "displayRowNumbers": false,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "username_atendente",
+                    "useForSearch": false,
+                    "actions": {
+                      "hover": {
+                        "type": "tooltip",
+                        "tooltipTemplate": "{{ @ }}"
+                      }
+                    }
+                  },
+                  {
+                    "fieldName": "numero_destinatario",
+                    "useForSearch": false,
+                    "displayName": "Telefone",
+                    "actions": {
+                      "hover": {
+                        "type": "tooltip",
+                        "tooltipTemplate": "{{ @ }}"
+                      }
+                    }
+                  },
+                  {
+                    "fieldName": "data_hora_erro",
+                    "useForSearch": false,
+                    "contentAlignment": "right",
+                    "format": {
+                      "type": "moment.js",
+                      "format": "DD/MM/YYYY HH:mm:ss.SSS"
+                    },
+                    "displayName": "Data e  Hora (UTC)",
+                    "actions": {
+                      "hover": {
+                        "type": "tooltip",
+                        "tooltipTemplate": "{{ @ }}"
+                      }
+                    }
+                  },
+                  {
+                    "fieldName": "tipo_erro",
+                    "useForSearch": false,
+                    "displayName": "Tipo de Erro",
+                    "actions": {
+                      "hover": {
+                        "type": "tooltip",
+                        "tooltipTemplate": "{{ @ }}"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 18,
+            "width": 8,
+            "height": 9
+          }
+        },
+        {
+          "widget": {
+            "name": "57b6efce",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "daily(data_hora_erro)",
+                      "expression": "DATE_TRUNC(\"DAY\", `data_hora_erro`)"
+                    },
+                    {
+                      "name": "countdistinct(id_atendente)",
+                      "expression": "COUNT(DISTINCT `id_atendente`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Quantidade de atendentes que enfrentaram erros"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(data_hora_erro)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "countdistinct(id_atendente)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": false
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 8,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "d72e668d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Quantidade total de erros"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "count(*)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 6,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f45eec73",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "min(data_hora_erro)",
+                      "expression": "MIN(`data_hora_erro`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Data primeiro erro"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "min(data_hora_erro)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 8,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "877a1c01",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "max(data_hora_erro)",
+                      "expression": "MAX(`data_hora_erro`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Data ultimo erro"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "max(data_hora_erro)"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 10,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "b24deb11",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    },
+                    {
+                      "name": "username_atendente",
+                      "expression": "`username_atendente`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Atendentes que enfrentaram mais erro"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "count(*)",
+                  "displayName": "Quantidade de erros",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "username_atendente",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 12,
+            "width": 4,
+            "height": 15
+          }
+        },
+        {
+          "widget": {
+            "name": "390acac1",
+            "multilineTextboxSpec": {
+              "lines": [
+                "TODO: grafico de quais redes e lojas tiveram mais erro..."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 27,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "701d5dc9",
+            "queries": [
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219839345c5ec5953fa78_tipo_erro",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "tipo_erro",
+                      "expression": "`tipo_erro`"
+                    },
+                    {
+                      "name": "tipo_erro_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "tipo_erro",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219839345c5ec5953fa78_tipo_erro"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 4,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "156f2ede",
+            "queries": [
+              {
+                "name": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219839345c5ec5953fa78_subtipo_erro",
+                "query": {
+                  "datasetName": "76325264",
+                  "fields": [
+                    {
+                      "name": "subtipo_erro",
+                      "expression": "`subtipo_erro`"
+                    },
+                    {
+                      "name": "subtipo_erro_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "subtipo_erro",
+                    "queryName": "dashboards/01f09adefd481fd3983e82a7b6dcc533/datasets/01f113827ee219839345c5ec5953fa78_subtipo_erro"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 4,
+            "height": 1
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "5400fcbc",
+      "displayName": "alcance",
+      "layout": [
+        {
+          "widget": {
+            "name": "total-atendentes-nossa-base",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "0a9dba2f",
+                  "fields": [
+                    {
+                      "name": "total_elegiveis_opt_in",
+                      "expression": "`total_elegiveis_opt_in`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Total atendentes na nossa base (atual)"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_elegiveis_opt_in"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "total-atendentes-receberam-mensagem-regua",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "0a9dba2f",
+                  "fields": [
+                    {
+                      "name": "total_atendentes_alcancados",
+                      "expression": "`total_atendentes_alcancados`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Total atendentes (atuais) que já receberam mensagem da régua"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_atendentes_alcancados"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "c762bfaf",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "0a9dba2f",
+                  "fields": [
+                    {
+                      "name": "percentual_alcance",
+                      "expression": "`percentual_alcance`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Percentual alcançado (atual)"
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "percentual_alcance"
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 0,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "percentual",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "0a9dba2f",
+                  "fields": [
+                    {
+                      "name": "monthly(data_snapshot)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `data_snapshot`)"
+                    },
+                    {
+                      "name": "percentual_alcance",
+                      "expression": "`percentual_alcance`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Percentual atendentes alcançados (histórico)"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(data_snapshot)",
+                  "axis": {
+                    "hideTitle": false,
+                    "title": "Data do Cálculo"
+                  },
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "percentual_alcance",
+                  "displayName": "Percentual de Alcance",
+                  "scale": {
+                    "type": "quantitative",
+                    "domain": {
+                      "max": 100,
+                      "min": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "ecd9bbdc",
+      "displayName": "opt-out",
+      "layout": [
+        {
+          "widget": {
+            "name": "80eb0edb",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e93b0f35",
+                  "fields": [
+                    {
+                      "name": "daily(atualizado_em)",
+                      "expression": "DATE_TRUNC(\"DAY\", `atualizado_em`)"
+                    },
+                    {
+                      "name": "countdistinct(id_atendente)",
+                      "expression": "COUNT(DISTINCT `id_atendente`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Quantidade de atendentes em opt-out (histórico)",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(atualizado_em)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Data",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "countdistinct(id_atendente)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Quantidade de Atendentes",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 9,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "1e9e2117",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "e93b0f35",
+                  "fields": [
+                    {
+                      "name": "monthly(atualizado_em)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `atualizado_em`)"
+                    },
+                    {
+                      "name": "avg(mensagens_recebidas_antes_opt_out)",
+                      "expression": "AVG(`mensagens_recebidas_antes_opt_out`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Quantidade média de mensagens recebidas antes de selecionar opt-out",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(atualizado_em)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(mensagens_recebidas_antes_opt_out)",
+                  "axis": {
+                    "hideTitle": true
+                  },
+                  "displayName": "Quantidade de Mensagens",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": false
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 9,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}

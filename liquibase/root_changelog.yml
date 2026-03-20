@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - includeAll:
+      path: raw/
+  - includeAll:
+      path: standard/
+  - includeAll:
+      path: refined/
+  # - includeAll:
+  #     path: enriquecimento/
+  # - includeAll:
+  #     path: analytics/
+  - includeAll:
+      path: utils/

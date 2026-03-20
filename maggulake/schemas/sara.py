@@ -1,0 +1,23 @@
+schema = """
+    ean STRING,
+    product_name STRING,
+    product_description STRING,
+    anvisa_code STRING,
+    active_ingredient STRING,
+    drug_unit STRING,
+    drug_quantity STRING,
+    dosage_form STRING,
+    stripe STRING,
+    regulatory_class STRING,
+    therapeutical_class STRING,
+    administration_routes STRING,
+    usage_restrictions STRING,
+    conservation STRING,
+    marketing_company STRING,
+    manufacturer STRING,
+    manufacturer_cnpj STRING,
+    professional_leaflet_url STRING,
+    patient_leaflet_url STRING,
+    product_url STRING,
+    scraped_at TIMESTAMP
+"""
