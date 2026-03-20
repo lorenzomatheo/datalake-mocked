@@ -1,9 +1,6 @@
-# CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
-
 ```bash
 make install        # Instala dependências Python (pip install -r requirements.in -r requirements-dev.in -e .)
 make format         # ruff (imports + estilo) + terraform fmt + mdformat
