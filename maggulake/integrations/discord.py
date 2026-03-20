@@ -13,16 +13,19 @@ def _get_env_or_secret(key: str, scope: str = "omni") -> str:
     if value:
         return value
     try:
-        from pyspark.sql import SparkSession  # noqa: PLC0415
-        from pyspark.dbutils import DBUtils  # noqa: PLC0415
+        from pyspark.dbutils import DBUtils  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
+        from pyspark.sql import SparkSession  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
 
         spark = SparkSession.getActiveSession()
         if spark:
             dbutils = DBUtils(spark)
             return dbutils.secrets.get(scope=scope, key=key)
-    except Exception:
+    except (ImportError, RuntimeError):
         pass
-    raise ValueError(f"Variável '{key}' não encontrada em os.environ nem em dbutils.secrets(scope='{scope}')")
+    raise ValueError(
+        f"Variável '{key}' não encontrada em os.environ"
+        f" nem em dbutils.secrets(scope='{scope}')"
+    )
 
 
 def _get_omni_client() -> tuple[OmniClient, str]:

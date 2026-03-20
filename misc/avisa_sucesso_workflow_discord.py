@@ -27,7 +27,6 @@ if stage == "prod":
         return datetime.now(pytz.timezone("America/Sao_Paulo")).strftime("%H:%M:%S")
 
     enviar_mensagem_discord(
-        spark,
         id_canal_databricks,
         f"➡️ Pipeline de dados executado com sucesso às {agora()} ✅.\n\n> Para mais informações acesse: https://stats.uptimerobot.com/q9l0er03jr \n\n---------------------",
     )

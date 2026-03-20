@@ -86,4 +86,4 @@ def cria_mensagem(df: pd.DataFrame) -> str:
 
 # COMMAND ----------
 
-enviar_mensagem_discord(spark, id_canal_vendas_ads, cria_mensagem(vendas_df))
+enviar_mensagem_discord(id_canal_vendas_ads, cria_mensagem(vendas_df))
