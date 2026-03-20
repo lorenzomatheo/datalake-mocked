@@ -4,6 +4,16 @@ Data lakehouse Databricks com arquitetura medallion para o ecossistema farmacêu
 
 ## Setup
 
+### Python mínimo requerido: 3.11+
+
+Este repositório usa `typing.Self` (disponível a partir de Python 3.11). Se `python` aponta para 3.10 ou anterior, especifique a versão ao criar o virtualenv:
+
+```bash
+python3.12 -m venv .venv  # ou 3.11
+```
+
+### Instalação
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate   # Linux/WSL
@@ -14,18 +24,16 @@ make install
 
 ## Qualidade de código
 
-### Hook post-commit (local)
+### Local — make format e make lint
 
-Após cada `git commit`, o hook `.git/hooks/post-commit` pergunta interativamente se você quer rodar `make format` e `make lint` antes de dar push:
+Após cada `git commit`, o hook post-commit pergunta interativamente se você quer rodar `make format` e `make lint` antes de dar push:
 
-```
+```text
 Quer rodar 'make format' antes de dar push? [s/N]
 Quer rodar 'make lint' antes de dar push? [s/N]
 ```
 
 O hook é **não-bloqueante** — se você recusar, o commit já foi feito normalmente.
-
-#### O que cada comando faz
 
 **`make format`** corrige a formatação automaticamente:
 
@@ -40,28 +48,19 @@ O hook é **não-bloqueante** — se você recusar, o commit já foi feito norma
 - `pylint --rcfile=.pylintrc .` — análise estática mais completa
 - `pymarkdownlnt --config .pymarkdown.json scan .` — lint de Markdown
 
-#### Instalação do hook
-
-Copie o arquivo para `.git/hooks/`:
-
-```bash
-cp hooks/post-commit .git/hooks/post-commit
-chmod +x .git/hooks/post-commit
-```
-
 ### CI — GitHub Actions (remoto)
 
 Ao abrir ou atualizar um Pull Request, o workflow `.github/workflows/linters.yml` roda automaticamente os mesmos checks em paralelo:
 
-| Job | Runner | O que faz |
-| --- | --- | --- |
-| `ruff` | `ubuntu-latest` | `ruff check` + `ruff format --check` |
-| `pylint` | `ubuntu-latest` | `pylint --rcfile=.pylintrc .` |
-| `markdown-format` | `ubuntu-latest` | `mdformat --check .` |
-| `markdown-lint` | `ubuntu-latest` | `pymarkdownlnt scan .` |
-| `terraform-validate` | `ubuntu-latest` | `terraform validate` |
-| `terraform-fmt-check` | `ubuntu-latest` | `terraform fmt -check` |
-| `notify-on-failure` | `self-hosted, omni` | Envia alerta no Discord via Omni |
+| Job                   | Runner              | O que faz                            |
+| --------------------- | ------------------- | ------------------------------------ |
+| `ruff`                | `ubuntu-latest`     | `ruff check` + `ruff format --check` |
+| `pylint`              | `ubuntu-latest`     | `pylint --rcfile=.pylintrc .`        |
+| `markdown-format`     | `ubuntu-latest`     | `mdformat --check .`                 |
+| `markdown-lint`       | `ubuntu-latest`     | `pymarkdownlnt scan .`               |
+| `terraform-validate`  | `ubuntu-latest`     | `terraform validate`                 |
+| `terraform-fmt-check` | `ubuntu-latest`     | `terraform fmt -check`               |
+| `notify-on-failure`   | `self-hosted, omni` | Envia alerta no Discord via Omni     |
 
 O workflow é acionado quando há mudanças em arquivos `.py`, `.ipynb`, `.md`, `.tf`, `pyproject.toml`, `requirements*`, `.pylintrc` ou `.github/**`.
 
@@ -69,9 +68,7 @@ O workflow é acionado quando há mudanças em arquivos `.py`, `.ipynb`, `.md`, 
 
 Se **qualquer job de lint falhar**, o job `notify-on-failure` é executado em um **self-hosted runner** (label `omni`) que tem acesso à rede privada onde o servidor Omni está rodando.
 
-O fluxo completo:
-
-```
+```text
 PR aberto/atualizado
   └─► GitHub Actions roda linters (ubuntu-latest)
         └─► Algum linter falha
@@ -87,16 +84,36 @@ A mensagem no Discord contém:
 - Quais jobs falharam
 - Link para os detalhes do run
 
-#### Configuração necessária
+## Configuração — Discord via Omni
 
-**GitHub Secrets** (Settings > Secrets and variables > Actions):
+### 1. Instância Omni
 
-| Secret | Descrição | Como obter |
-| --- | --- | --- |
-| `OMNI_BASE_URL` | URL do servidor Omni | `hostname -I` na máquina do Omni (ex: `http://192.168.1.50:8882`) |
-| `OMNI_API_KEY` | API key do Omni | `omni auth status` ou `cat ~/.omni/config.json` |
-| `OMNI_DISCORD_INSTANCE_ID` | UUID da instância Discord | `omni instances list` |
-| `OMNI_DISCORD_CHANNEL_ID` | ID do canal Discord | Botão direito no canal > Copiar ID |
+Na máquina que hospeda o Omni (rede privada):
+
+```bash
+omni instances create --name "alerts-discord" --channel discord
+omni instances connect <instance-id> --token "<DISCORD_BOT_TOKEN>"
+```
+
+### 2. Bot Discord
+
+O bot precisa estar no servidor e ter acesso ao canal:
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) > selecionar o bot
+1. OAuth2 > marcar scope `bot` > marcar permissões `Send Messages` e `View Channels`
+1. Abrir a URL gerada e autorizar no servidor
+1. Se o canal for privado: Editar canal > Permissões > adicionar o bot
+
+### 3. GitHub Secrets
+
+Settings > Secrets and variables > Actions:
+
+| Secret                     | Descrição                 | Como obter                                                        |
+| -------------------------- | ------------------------- | ----------------------------------------------------------------- |
+| `OMNI_BASE_URL`            | URL do servidor Omni      | `hostname -I` na máquina do Omni (ex: `http://192.168.1.50:8882`) |
+| `OMNI_API_KEY`             | API key do Omni           | `omni auth status` ou `cat ~/.omni/config.json`                   |
+| `OMNI_DISCORD_INSTANCE_ID` | UUID da instância Discord | `omni instances list`                                             |
+| `OMNI_DISCORD_CHANNEL_ID`  | ID do canal Discord       | Botão direito no canal > Copiar ID                                |
 
 ```bash
 gh secret set OMNI_BASE_URL --body "http://<host>:8882"
@@ -105,7 +122,9 @@ gh secret set OMNI_DISCORD_INSTANCE_ID --body "<uuid>"
 gh secret set OMNI_DISCORD_CHANNEL_ID --body "<id-do-canal>"
 ```
 
-**Self-hosted runner** (máquina na rede privada com acesso ao Omni):
+### 4. Self-hosted runner
+
+O runner precisa estar numa máquina na rede privada com acesso ao Omni. O `~` no WSL aponta para `/home/<usuario>`, não para `/mnt/c/Users/...` — use `~` para evitar problemas com espaços no path.
 
 ```bash
 # Gerar token de registro
@@ -119,16 +138,56 @@ tar xzf actions-runner-linux-x64-2.322.0.tar.gz
 ./run.sh
 ```
 
-**Bot Discord** (precisa estar no servidor e ter acesso ao canal):
+Para obter detalhes adicionais sobre como configurar, executar ou desligar o runner, verifique a [documentação oficial](https://docs.github.com/pt/actions/how-tos/manage-runners/self-hosted-runners).
 
-1. [Discord Developer Portal](https://discord.com/developers/applications) > selecionar o bot
-2. OAuth2 > marcar scope `bot` > marcar permissões `Send Messages` e `View Channels`
-3. Abrir a URL gerada e autorizar no servidor
-4. Se o canal for privado: Editar canal > Permissões > adicionar o bot
+## Genie — Orquestrador de tarefas
 
-**Instância Omni**:
+O diretório `.genie/` é o orquestrador de tarefas do projeto. Ele define especificações de trabalho ("wishes"), rastreia o estado de execução e coordena workers via mailbox.
 
-```bash
-omni instances create --name "alerts-discord" --channel discord
-omni instances connect <instance-id> --token "<DISCORD_BOT_TOKEN>"
+### Estrutura
+
+```text
+.genie/
+├── wishes/          # Especificações de tarefas (WISH.md)
+│   ├── post-commit-format-lint-hook/
+│   │   └── WISH.md
+│   └── pr-lint-discord-notify/
+│       └── WISH.md
+├── state/           # Estado de execução (JSON)
+│   └── pr-lint-discord-notify.json
+└── mailbox/         # Mensagens entre workers (JSON)
+    └── new-project-team-lead.json
 ```
+
+### Wishes
+
+Cada wish é uma especificação completa de uma tarefa, contendo:
+
+- **Summary** — o que deve ser feito
+- **Scope** (IN/OUT) — o que está dentro e fora do escopo
+- **Decisions** — decisões técnicas com justificativa
+- **Success Criteria** — checklist de critérios de aceite
+- **Execution Groups** — divisão em waves e grupos com agentes responsáveis
+- **QA Criteria** — como validar que a tarefa foi concluída
+
+### State
+
+Arquivos JSON em `state/` rastreiam o progresso de cada wish:
+
+```json
+{
+  "wish": "pr-lint-discord-notify",
+  "groups": {
+    "1": {
+      "status": "done",
+      "assignee": "engineer"
+    }
+  }
+}
+```
+
+Status possíveis: `pending`, `in_progress`, `done`.
+
+### Mailbox
+
+Workers se comunicam via `mailbox/`. Cada arquivo JSON contém mensagens com remetente, destinatário e corpo — usado para notificar sobre fixes aplicados, resultados de reviews, etc.
