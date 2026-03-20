@@ -138,7 +138,7 @@ tar xzf actions-runner-linux-x64-2.322.0.tar.gz
 ./run.sh
 ```
 
-Para obter detalhes adicionais sobre como configurar, executar ou desligar o runner, por favor verifique: https://docs.github.com/pt/actions/how-tos/manage-runners/self-hosted-runners
+Para obter detalhes adicionais sobre como configurar, executar ou desligar o runner, verifique a [documentação oficial](https://docs.github.com/pt/actions/how-tos/manage-runners/self-hosted-runners).
 
 ## Genie — Orquestrador de tarefas
 
