@@ -13,8 +13,12 @@ def _get_env_or_secret(key: str, scope: str = "omni") -> str:
     if value:
         return value
     try:
-        from pyspark.dbutils import DBUtils  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
-        from pyspark.sql import SparkSession  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
+        from pyspark.dbutils import (
+            DBUtils,  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
+        )
+        from pyspark.sql import (
+            SparkSession,  # noqa: PLC0415  # pylint: disable=import-outside-toplevel
+        )
 
         spark = SparkSession.getActiveSession()
         if spark:
