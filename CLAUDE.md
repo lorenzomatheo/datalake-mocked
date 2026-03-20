@@ -1,18 +1,5 @@
 
 
-## Commands
-```bash
-make install        # Instala dependências Python (pip install -r requirements.in -r requirements-dev.in -e .)
-make format         # ruff (imports + estilo) + terraform fmt + mdformat
-make lint           # ruff + pylint + pymarkdownlnt
-make test           # pytest
-make coverage       # pytest --cov=maggulake
-make coverage-html  # pytest --cov=maggulake --cov-report=html
-./liquibase.sh      # Executa migrações de banco de dados via Docker
-```
-
-Para rodar um único teste: `pytest tests/unit/test_foo.py::test_bar`
-
 ## Arquitetura
 
 **Data lakehouse Databricks** com arquitetura medallion para o ecossistema farmacêutico. Workflows orquestrados via Terraform, código executado em notebooks Python/PySpark.
