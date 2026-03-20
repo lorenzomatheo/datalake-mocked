@@ -18,7 +18,11 @@ make install
 
 Após cada `git commit`, o hook `.git/hooks/post-commit` pergunta interativamente se você quer rodar `make format` e `make lint` antes de dar push:
 
+<<<<<<< branch_validacao_final
 ```text
+=======
+```
+>>>>>>> main
 Quer rodar 'make format' antes de dar push? [s/N]
 Quer rodar 'make lint' antes de dar push? [s/N]
 ```
@@ -53,6 +57,7 @@ chmod +x .git/hooks/post-commit
 
 Ao abrir ou atualizar um Pull Request, o workflow `.github/workflows/linters.yml` roda automaticamente os mesmos checks em paralelo:
 
+<<<<<<< branch_validacao_final
 | Job                   | Runner              | O que faz                            |
 | --------------------- | ------------------- | ------------------------------------ |
 | `ruff`                | `ubuntu-latest`     | `ruff check` + `ruff format --check` |
@@ -62,6 +67,17 @@ Ao abrir ou atualizar um Pull Request, o workflow `.github/workflows/linters.yml
 | `terraform-validate`  | `ubuntu-latest`     | `terraform validate`                 |
 | `terraform-fmt-check` | `ubuntu-latest`     | `terraform fmt -check`               |
 | `notify-on-failure`   | `self-hosted, omni` | Envia alerta no Discord via Omni     |
+=======
+| Job | Runner | O que faz |
+| --- | --- | --- |
+| `ruff` | `ubuntu-latest` | `ruff check` + `ruff format --check` |
+| `pylint` | `ubuntu-latest` | `pylint --rcfile=.pylintrc .` |
+| `markdown-format` | `ubuntu-latest` | `mdformat --check .` |
+| `markdown-lint` | `ubuntu-latest` | `pymarkdownlnt scan .` |
+| `terraform-validate` | `ubuntu-latest` | `terraform validate` |
+| `terraform-fmt-check` | `ubuntu-latest` | `terraform fmt -check` |
+| `notify-on-failure` | `self-hosted, omni` | Envia alerta no Discord via Omni |
+>>>>>>> main
 
 O workflow é acionado quando há mudanças em arquivos `.py`, `.ipynb`, `.md`, `.tf`, `pyproject.toml`, `requirements*`, `.pylintrc` ou `.github/**`.
 
@@ -71,7 +87,11 @@ Se **qualquer job de lint falhar**, o job `notify-on-failure` é executado em um
 
 O fluxo completo:
 
+<<<<<<< branch_validacao_final
 ```text
+=======
+```
+>>>>>>> main
 PR aberto/atualizado
   └─► GitHub Actions roda linters (ubuntu-latest)
         └─► Algum linter falha
@@ -91,12 +111,21 @@ A mensagem no Discord contém:
 
 **GitHub Secrets** (Settings > Secrets and variables > Actions):
 
+<<<<<<< branch_validacao_final
 | Secret                     | Descrição                 | Como obter                                                        |
 | -------------------------- | ------------------------- | ----------------------------------------------------------------- |
 | `OMNI_BASE_URL`            | URL do servidor Omni      | `hostname -I` na máquina do Omni (ex: `http://192.168.1.50:8882`) |
 | `OMNI_API_KEY`             | API key do Omni           | `omni auth status` ou `cat ~/.omni/config.json`                   |
 | `OMNI_DISCORD_INSTANCE_ID` | UUID da instância Discord | `omni instances list`                                             |
 | `OMNI_DISCORD_CHANNEL_ID`  | ID do canal Discord       | Botão direito no canal > Copiar ID                                |
+=======
+| Secret | Descrição | Como obter |
+| --- | --- | --- |
+| `OMNI_BASE_URL` | URL do servidor Omni | `hostname -I` na máquina do Omni (ex: `http://192.168.1.50:8882`) |
+| `OMNI_API_KEY` | API key do Omni | `omni auth status` ou `cat ~/.omni/config.json` |
+| `OMNI_DISCORD_INSTANCE_ID` | UUID da instância Discord | `omni instances list` |
+| `OMNI_DISCORD_CHANNEL_ID` | ID do canal Discord | Botão direito no canal > Copiar ID |
+>>>>>>> main
 
 ```bash
 gh secret set OMNI_BASE_URL --body "http://<host>:8882"
@@ -122,9 +151,15 @@ tar xzf actions-runner-linux-x64-2.322.0.tar.gz
 **Bot Discord** (precisa estar no servidor e ter acesso ao canal):
 
 1. [Discord Developer Portal](https://discord.com/developers/applications) > selecionar o bot
+<<<<<<< branch_validacao_final
 1. OAuth2 > marcar scope `bot` > marcar permissões `Send Messages` e `View Channels`
 1. Abrir a URL gerada e autorizar no servidor
 1. Se o canal for privado: Editar canal > Permissões > adicionar o bot
+=======
+2. OAuth2 > marcar scope `bot` > marcar permissões `Send Messages` e `View Channels`
+3. Abrir a URL gerada e autorizar no servidor
+4. Se o canal for privado: Editar canal > Permissões > adicionar o bot
+>>>>>>> main
 
 **Instância Omni**:
 
@@ -132,6 +167,7 @@ tar xzf actions-runner-linux-x64-2.322.0.tar.gz
 omni instances create --name "alerts-discord" --channel discord
 omni instances connect <instance-id> --token "<DISCORD_BOT_TOKEN>"
 ```
+<<<<<<< branch_validacao_final
 
 ## Genie — Orquestrador de tarefas
 
@@ -184,3 +220,5 @@ Status possíveis: `pending`, `in_progress`, `done`.
 ### Mailbox
 
 Workers se comunicam via `mailbox/`. Cada arquivo JSON contém mensagens com remetente, destinatário e corpo — usado para notificar sobre fixes aplicados, resultados de reviews, etc.
+=======
+>>>>>>> main
